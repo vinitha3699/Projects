@@ -905,11 +905,48 @@ if selected == "Analysis":
     cursor = conn.cursor()
 
     if select == "TOP CATEGORIES":
-        tab5, tab6 = st.tabs(["TRANSACTION", "USER"])
+        tab5,tab6,tab7 = st.tabs(["INSURANCE","TRANSACTION", "USER"])
+
+        with tab5:
+            top_insur_yr = st.selectbox('**Select Year**', ('2020', '2021', '2022','2023'), key='top_insur_yr')
+
+            #SQL QUERY
+
+            #Top Insurance Analysis bar chart query
+            cursor.execute(
+                f"SELECT States,SUM(Transaction_amount) As Transaction_amount FROM top_insurance WHERE Years = '{top_insur_yr}' GROUP BY States ORDER BY Transaction_amount DESC LIMIT 10;")
+            top_insur_tab_qry_rslt = cursor.fetchall()
+            df_top_insur_tab_qry_rslt = pd.DataFrame(np.array(top_insur_tab_qry_rslt),columns=['States','Transaction_amount'])
+            df_top_insur_tab_qry_rslt1 = df_top_insur_tab_qry_rslt.set_index(pd.Index(range(1,len(df_top_insur_tab_qry_rslt) + 1)))
+
+            # Top Insurance Analysis table query
+            cursor.execute(
+                f"SELECT States,SUM(Transaction_amount) as Transaction_amount, SUM(Transaction_count) as Transaction_count FROM top_insurance WHERE Years = '{top_insur_yr}' GROUP BY States ORDER BY Transaction_amount DESC LIMIT 10;")
+            top_insur_anly_tab_qry_rslt = cursor.fetchall()
+            df_top_insur_anly_tab_qry_rslt = pd.DataFrame(np.array(top_insur_anly_tab_qry_rslt),columns=['States','Transaction_amount','Transaction_count'])
+            df_top_insur_anly_tab_qry_rslt1 = df_top_insur_anly_tab_qry_rslt.set_index(pd.Index(range(1, len(df_top_insur_anly_tab_qry_rslt) + 1)))
+
+
+
+            # All India Insurance Analysis Bar chart
+            df_top_insur_tab_qry_rslt1['States'] = df_top_insur_tab_qry_rslt1['States'].astype(str)
+            df_top_insur_tab_qry_rslt1['Transaction_amount'] = df_top_insur_tab_qry_rslt1['Transaction_amount'].astype(float)
+            df_top_insur_tab_qry_rslt1_fig = px.bar(df_top_insur_tab_qry_rslt1, x='States', y='Transaction_amount',
+                                                 color='Transaction_amount', color_continuous_scale='turbo',
+                                                 title='Top Insurance Analysis Chart', height=600, )
+            df_top_insur_tab_qry_rslt1_fig.update_layout(title_font=dict(size=33), title_font_color='#AD71EF')
+            st.plotly_chart(df_top_insur_tab_qry_rslt1_fig, use_container_width=True)
+
+
+            #All India Total Insurance calculation Table
+            st.header(':violet[Total calculation]')
+            st.subheader('Top Insurance Analysis')
+            st.dataframe(df_top_insur_anly_tab_qry_rslt1)
+
 
         # Overall top transaction
         #TRANSACTION TAB
-        with tab5:
+        with tab6:
             top_tr_yr = st.selectbox('**Select Year**', ('2018', '2019', '2020', '2021', '2022'), key='top_tr_yr')
 
             #SQL QUERY
@@ -953,7 +990,7 @@ if selected == "Analysis":
 
         # OVERALL TOP USER DATA
         # USER TAB
-        with tab6:
+        with tab7:
             top_us_yr = st.selectbox('**Select Year**', ('2018', '2019', '2020', '2021', '2022'), key='top_us_yr')
 
             #SQL QUERY
